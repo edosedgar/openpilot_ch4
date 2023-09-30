@@ -44,7 +44,6 @@ def main():
     elif sm.updated['customReservedRawData1']:
       controls_list = json.loads(sm['customReservedRawData1'].decode())
       print(f'Received {controls_list} at cycle {cycle} time {time.monotonic()}')
-      send_control_message(pm, controls['x'], controls['y'], 'wasd')
     else:
       now = time.monotonic()
       if now > last_control_send_time + TIME_GAP_THRESHOLD:
