@@ -20,7 +20,8 @@ def send_control_message(pm, x, y, source):
   msg.testJoystick.axes = [x, y]
   msg.testJoystick.buttons = [False]
   pm.send('testJoystick', msg)
-  logger.info(f"bodycontrol|{source} (x, y): ({x}, {y})")
+  if source != 'dummy':
+    logger.info(f"bodycontrol|{source} (x, y): ({x}, {y})")
   last_control_send_time = time.monotonic()
 
 def main():
@@ -47,9 +48,9 @@ def main():
     else:
       now = time.monotonic()
       if now > last_control_send_time + TIME_GAP_THRESHOLD:
-        print(f'cycle {cycle} time {time.monotonic()}')
         if len(controls_list) > 0:
           controls = controls_list.pop(0)
+          print(f'cycle {cycle} time {time.monotonic()}')
           send_control_message(pm, controls['x'], controls['y'], 'wasd')
         else:
           send_control_message(pm, 0.0, 0.0, 'dummy')
