@@ -35,7 +35,7 @@ class EncodedBodyVideo(MediaStreamTrack):
 
   def __init__(self):
     super().__init__()
-    sock_name = 'livestreamDriverEncodeData'
+    sock_name = 'livestreamWideRoadEncodeData'
     messaging.context = messaging.Context()
     self.sock = messaging.sub_sock(sock_name, None, conflate=True)
     self.pts = 0

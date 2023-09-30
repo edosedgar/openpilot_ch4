@@ -16,7 +16,7 @@ setInterval( () => {
     $(".pre-blob").removeClass('blob');
     $("#battery").text("-");
     $("#ping-time").text('-');
-    $("video")[0].load();
+    $("video")[2].load();
   }
 }, 5000);
 
