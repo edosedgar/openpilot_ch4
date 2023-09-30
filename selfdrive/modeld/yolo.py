@@ -129,7 +129,7 @@ def main(debug=False):
   yolo_runner = YoloRunner()
   pm = messaging.PubMaster(['customReservedRawData1'])
   del os.environ["ZMQ"]
-  vipc_client = VisionIpcClient("camerad", VisionStreamType.VISION_STREAM_DRIVER, True)
+  vipc_client = VisionIpcClient("camerad", VisionStreamType.VISION_STREAM_WIDE_ROAD, True)
 
   while not vipc_client.connect(False):
     time.sleep(0.1)
@@ -141,8 +141,9 @@ def main(debug=False):
 
     st = time.time()
     imgff = yuv_img_raw.data.reshape(-1, vipc_client.stride)
-    imgff = imgff[:vipc_client.height * 3 // 2, :vipc_client.width]
-    img = cv2.cvtColor(imgff, cv2.COLOR_YUV2BGR_I420)
+    imgff = imgff[:vipc_client.height, :vipc_client.width]
+    img = np.stack([imgff, imgff, imgff], axis=-1)
+    #img = cv2.cvtColor(imgff, cv2.COLOR_YUV2BGR_I420)
     outputs = yolo_runner.run(img)
 
     msg = messaging.new_message()
