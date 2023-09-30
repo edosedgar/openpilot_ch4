@@ -4,9 +4,9 @@ from sklearn.model_selection import train_test_split
 # Load the dataset
 data = pd.read_csv("ds_info.csv")
 
-# Splitting the data into train, validation, and test
-train, temp = train_test_split(data, test_size=0.3, random_state=42)
-val, test = train_test_split(temp, test_size=0.5, random_state=42)
+# Splitting the data into train, validation, and test with stratification
+train, temp = train_test_split(data, test_size=0.3, random_state=42, stratify=data['label'])
+val, test = train_test_split(temp, test_size=0.5, random_state=42, stratify=temp['label'])
 
 # Save them into separate CSV files
 train.to_csv("train_dataset.csv", index=False)
