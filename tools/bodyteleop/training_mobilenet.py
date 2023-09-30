@@ -9,23 +9,6 @@ from PIL import Image
 
 
 # 2. Define the dataset class
-# class SelfDrivingDataset(Dataset):
-#     def __init__(self, csv_file, transform=None):
-#         self.dataframe = pd.read_csv(csv_file)
-#         self.transform = transform
-
-#     def __len__(self):
-#         return len(self.dataframe)
-
-#     def __getitem__(self, idx):
-#         img_name = self.dataframe.iloc[idx, 0]
-#         image = Image.open(img_name)
-#         label = torch.tensor(self.dataframe.iloc[idx, 1], dtype=torch.long)
-        
-#         if self.transform:
-#             image = self.transform(image)
-
-#         return image, label
 class SelfDrivingDataset(Dataset):
     def __init__(self, csv_file, transform=None):
         self.dataframe = pd.read_csv(csv_file)
@@ -67,7 +50,7 @@ val_dataset = SelfDrivingDataset(csv_file="val_dataset.csv", transform=transform
 val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 # 4. Load the pre-trained ResNet model and modify the last layer
-model = models.efficientnet_v2_l(pretrained=True)
+model = models.mobilenet_v3_large(pretrained=True)
 num_features = model.classifier[-1].in_features
 print(num_features)
 model.classifier[-1] = nn.Linear(num_features,3)
