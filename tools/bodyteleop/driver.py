@@ -12,7 +12,7 @@ last_control_send_time = time.monotonic()
 logger = logging.getLogger("pc")
 logging.basicConfig(level=logging.INFO)
 
-LOG_FILE = '/tmp/c1.log'
+LOG_FILE = 'tools/bodyteleop/data/c1.log'
 
 
 def main():
