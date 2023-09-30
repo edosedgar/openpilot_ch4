@@ -43,7 +43,7 @@ def update_state(state: ControlState, data: ControlData) -> None:
 
 def print_state(state: ControlState) -> None:
   print(f'exec_id: {state.exec_id}')
-  print(f'past execs: {state.past_executions}')
+  #print(f'past execs: {state.past_executions}')
   print(f'controls_list: {state.control_idx} / {len(state.controls_list)}')
 
 def execute_control(state: ControlState, pm: messaging.PubMaster) -> None:

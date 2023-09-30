@@ -38,20 +38,23 @@ def main():
 
   print(f'Loaded {len(ctrls)} controls')
   exec_id = 0
-  rk = Ratekeeper(20.0)
+  rk = Ratekeeper(0.75)
 
   ts = 0
-  EXEC_TIME_STEPS = 100
 
   plan: List[ControlList] = [
-    forward(5),
-    left(5),
-    forward(5)
-  ]
+    forward(1),
+    right(1),
+  ] * 20
 
-  exec_id = 0
+  start_time = int(time.time())
+  exec_id = start_time
   while True:
-    data = ControlData(exec_id=exec_id, controls_list=plan[exec_id])
+    plan_idx = exec_id - start_time
+    if plan_idx == len(plan):
+      break
+
+    data = ControlData(exec_id=exec_id, controls_list=plan[plan_idx])
     msg = messaging.new_message()
     msg.customReservedRawData1 = json.dumps(asdict(data)).encode()
     print(msg.customReservedRawData1)
@@ -59,11 +62,9 @@ def main():
 
     rk.keep_time()
     ts += 1
-    if ts >= EXEC_TIME_STEPS:
+    if ts >= len(plan[plan_idx]):
       ts = 0
       exec_id += 1
-      if exec_id == len(plan):
-        break
 
 if __name__ == "__main__":
   main()
