@@ -14,7 +14,8 @@
 #include "system/loggerd/logger.h"
 
 constexpr int MAIN_FPS = 20;
-const int MAIN_BITRATE = 1e7;
+//const int MAIN_BITRATE = 1e7;
+const int MAIN_BITRATE = 1e6;
 const int LIVESTREAM_BITRATE = 1e6;
 const int QCAM_BITRATE = 256000;
 
@@ -26,7 +27,8 @@ const int QCAM_BITRATE = 256000;
   .init_encode_data_func = &cereal::Event::Builder::init##encode_type##Data
 
 const bool LOGGERD_TEST = getenv("LOGGERD_TEST");
-const int SEGMENT_LENGTH = LOGGERD_TEST ? atoi(getenv("LOGGERD_SEGMENT_LENGTH")) : 60;
+//const int SEGMENT_LENGTH = LOGGERD_TEST ? atoi(getenv("LOGGERD_SEGMENT_LENGTH")) : 60;
+const int SEGMENT_LENGTH = 600;
 
 constexpr char PRESERVE_ATTR_NAME[] = "user.preserve";
 constexpr char PRESERVE_ATTR_VALUE = '1';
@@ -58,12 +60,16 @@ public:
 const EncoderInfo main_road_encoder_info = {
   .publish_name = "roadEncodeData",
   .filename = "fcamera.hevc",
+  .frame_width = 640,
+  .frame_height = 480,
   INIT_ENCODE_FUNCTIONS(RoadEncode),
 };
 
 const EncoderInfo main_wide_road_encoder_info = {
   .publish_name = "wideRoadEncodeData",
   .filename = "ecamera.hevc",
+  .frame_width = 640,
+  .frame_height = 480,
   INIT_ENCODE_FUNCTIONS(WideRoadEncode),
 };
 
@@ -71,6 +77,8 @@ const EncoderInfo main_driver_encoder_info = {
   .publish_name = "driverEncodeData",
   .filename = "dcamera.hevc",
   .record = Params().getBool("RecordFront"),
+  .frame_width = 640,
+  .frame_height = 480,
   INIT_ENCODE_FUNCTIONS(DriverEncode),
 };
 
