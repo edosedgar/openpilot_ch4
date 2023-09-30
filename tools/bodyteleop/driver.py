@@ -43,9 +43,8 @@ def main():
   ts = 0
 
   plan: List[ControlList] = [
-    forward(1),
     right(1),
-  ] * 20
+  ] * 100
 
   start_time = int(time.time())
   exec_id = start_time

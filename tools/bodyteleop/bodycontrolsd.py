@@ -22,11 +22,13 @@ last_control_send_time = time.monotonic()
 logger = logging.getLogger("pc")
 logging.basicConfig(level=logging.INFO)
 
-LOG_FILE = '/tmp/joystick.log'
 C1_FILE = '/tmp/c1.log'
 
 def send_control_message(pm, x, y, source):
   global last_control_send_time
+  if not engaged and source == 'model':
+    return
+
   msg = messaging.new_message('testJoystick')
   msg.testJoystick.axes = [x, y]
   msg.testJoystick.buttons = [False]
@@ -52,7 +54,7 @@ def execute_control(state: ControlState, pm: messaging.PubMaster) -> None:
     return
 
   controls = state.controls_list[state.control_idx]
-  send_control_message(pm, controls['x'], controls['y'], 'c1')
+  send_control_message(pm, controls['x'], controls['y'], 'model')
   state.control_idx += 1
   print_state(state)
 
@@ -63,17 +65,22 @@ def main():
   cycle = 0
   state = ControlState(past_executions=set(), exec_id=0, controls_list=[], control_idx=0)
 
-  log = open(LOG_FILE, 'w+')
-
+  global engaged
+  engaged = True
   while True:
     sm.update(0)
     cycle += 1
 
     if sm.updated['customReservedRawData0']:
       controls = json.loads(sm['customReservedRawData0'].decode())
-      log.write(json.dumps(controls) + '\n')
-      log.flush()
-      send_control_message(pm, -controls['x'], controls['y'], 'wasd')
+      if controls['x'] == 0.5:
+        engaged = False
+        print('disengaged')
+      elif controls['y'] == 0.5:
+        engaged = True
+        print('engaged')
+      else:
+        send_control_message(pm, -controls['x'], controls['y'], 'wasd')
     elif sm.updated['customReservedRawData1']:
       data = json.loads(sm['customReservedRawData1'].decode())
       control_data = ControlData(**data)

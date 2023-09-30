@@ -1,13 +1,13 @@
-const keyVals = {w: 0, a: 0, s: 0, d: 0}
+const keyVals = {w: 0, a: 0, s: 0, d: 0, c: 0, e: 0}
 
 export function getXY() {
-  let x = -keyVals.w + keyVals.s
-  let y = -keyVals.d + keyVals.a
+  let x = -keyVals.w + keyVals.s + 0.5 * keyVals.c
+  let y = -keyVals.d + keyVals.a + 0.5 * keyVals.e
   return {x, y}
 }
 
 export const handleKeyX = (key, setValue) => {
-  if (['w', 'a', 's', 'd'].includes(key)){
+  if (['w', 'a', 's', 'd', 'c', 'e'].includes(key)){
     keyVals[key] = setValue;
     let color = "#333";
     if (setValue === 1){
