@@ -32,18 +32,21 @@ class KlayRunner:
     self.session = ort.InferenceSession(onnx_path, providers=["CPUExecutionProvider"])
 
   def preprocess_image(self, img):
+    img = img[:img.shape[0], 280:-440]
+    cv2.imwrite('test_before.jpg', img)
     img = cv2.resize(img, (INPUT_SHAPE[0], INPUT_SHAPE[1]))
+    cv2.imwrite('test_after.jpg', img)
 
     # Convert from BGR to RGB (since OpenCV loads images in BGR)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     img = img / 255.0  # Convert values to [0,1]
     img = img.transpose(2, 0, 1)  # HWC -> CHW
 
     # Normalize
-    mean = np.array([0.485, 0.456, 0.406]).reshape((3, 1, 1))
-    std = np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1))
-    img = (img - mean) / std
+    # mean = np.array([0.485, 0.456, 0.406]).reshape((3, 1, 1))
+    # std = np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1))
+    # img = (img - mean) / std
 
     # Add batch dimension
     img = np.expand_dims(img, 0).astype(np.float32)
@@ -90,9 +93,7 @@ def main(debug=False, model_path=None):
     imgff = yuv_img_raw.data.reshape(-1, vipc_client.stride)
     imgff = imgff[:vipc_client.height, :vipc_client.width]
     img = np.stack([imgff, imgff, imgff], axis=-1)
-    print(img.shape)
     outputs = klay_runner.run(img)
-    print(outputs)
     pred = outputs[0]['pred_class']
 
     cmd = CLASS_NAME_TO_CMD[pred]
@@ -101,8 +102,9 @@ def main(debug=False, model_path=None):
 
     msg = messaging.new_message()
     msg.customReservedRawData1 = json.dumps(cmd).encode()
-    print(msg.customReservedRawData1)
+    print(outputs, msg.customReservedRawData1)
     pm.send('customReservedRawData1', msg)
+    time.sleep(0.1)
 
 
 if __name__ == "__main__":
