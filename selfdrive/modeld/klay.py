@@ -32,7 +32,7 @@ class KlayRunner:
   def preprocess_image(self, img):
     img = img[:img.shape[0], 280:-440]
     cv2.imwrite('test_before.jpg', img)
-    img = cv2.resize(img, (INPUT_SHAPE[0], INPUT_SHAPE[1]))
+    img = cv2.resize(img, (INPUT_SHAPE[0], INPUT_SHAPE[1]), interpolation=cv2.INTER_AREA)
     cv2.imwrite('test_after.jpg', img)
 
     # Convert from BGR to RGB (since OpenCV loads images in BGR)

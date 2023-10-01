@@ -36,7 +36,7 @@ class KlayRunner:
 
   def preprocess_image(self, img):
     img = img[:img.shape[0], 280:-440]
-    img = cv2.resize(img, (INPUT_SHAPE[0], INPUT_SHAPE[1]))
+    img = cv2.resize(img, (INPUT_SHAPE[0], INPUT_SHAPE[1]), interpolation=cv2.INTER_AREA)
 
     img = img / 255.0  # Convert values to [0,1]
     img = img.transpose(2, 0, 1)  # HWC -> CHW
