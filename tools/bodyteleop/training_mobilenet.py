@@ -13,15 +13,30 @@ class SelfDrivingDataset(Dataset):
     def __init__(self, csv_file, transform=None):
         self.dataframe = pd.read_csv(csv_file)
         self.transform = transform
-        self.label_map = {'F': 0, 'R': 1, 'L': 2}
+        self.label_map = {'F': 0, 'R': 1, 'L': 2, 'FL': 3, 'FR': 4}
 
     def __len__(self):
         return len(self.dataframe)
 
+    # def __getitem__(self, idx):
+    #     img_name = self.dataframe.iloc[idx, 0]
+    #     image = Image.open(img_name)
+    #     # Convert string label to integer
+    #     label_str = self.dataframe.iloc[idx, 1]
+    #     label = torch.tensor(self.label_map[label_str], dtype=torch.long)
+        
+    #     if self.transform:
+    #         image = self.transform(image)
+
+    #     return image, label
     def __getitem__(self, idx):
         img_name = self.dataframe.iloc[idx, 0]
         image = Image.open(img_name)
-        # Convert string label to integer
+        
+        # Convert grayscale to RGB
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
         label_str = self.dataframe.iloc[idx, 1]
         label = torch.tensor(self.label_map[label_str], dtype=torch.long)
         
@@ -29,6 +44,7 @@ class SelfDrivingDataset(Dataset):
             image = self.transform(image)
 
         return image, label
+
 
 # 3. Create dataloaders
 # transform = transforms.Compose([
@@ -53,8 +69,8 @@ val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 model = models.mobilenet_v3_large(pretrained=True)
 num_features = model.classifier[-1].in_features
 print(num_features)
-model.classifier[-1] = nn.Linear(num_features,3)
-model.fc = nn.Linear(num_features, 3)
+model.classifier[-1] = nn.Linear(num_features,5)
+# model.fc = nn.Linear(num_features, 4)
 
 for param in model.parameters():
     param.requires_grad = False
@@ -110,8 +126,24 @@ def validate(model, loader, criterion, device):
 num_epochs = 10
 for epoch in range(num_epochs):
     train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, device)
+
     val_loss, val_acc = validate(model, val_loader, criterion, device)
     print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_loss:.4f}, Train accuracy: {train_acc:.4f}, Validation loss: {val_loss:.4f}, Validation accuracy: {val_acc:.4f}")
+
+    # Checkpointing every N epochs and when there's an improvement
+    if (epoch + 1) % N == 0 or val_acc > best_val_acc:
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+
+        checkpoint_name = f'checkpoint_epoch{epoch+1}_valacc{val_acc:.4f}.pth'
+        checkpoint = {
+            'epoch': epoch + 1,
+            'state_dict': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'best_val_acc': best_val_acc
+        }
+        torch.save(checkpoint, checkpoint_name)
+        print(f"Model checkpoint saved as {checkpoint_name}")
 
 # 7. Save and load the trained model
 torch.save(model.state_dict(), "self_driving_rc_model.pth")
