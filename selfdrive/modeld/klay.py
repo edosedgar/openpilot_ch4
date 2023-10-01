@@ -14,7 +14,7 @@ from cereal.visionipc import VisionIpcClient, VisionStreamType
 from openpilot.selfdrive.modeld.runners import ModelRunner
 import onnxruntime as ort
 
-INPUT_SHAPE = (240, 240, 3)
+INPUT_SHAPE = (224, 224, 3)
 
 CLASS_NAME_TO_CMD = {
     'F': {'x': 1.0, 'y': 0.0},
@@ -81,6 +81,7 @@ def main(debug=False, model_path=None):
   while not vipc_client.connect(False):
     time.sleep(0.1)
 
+  id = 0
   while True:
     yuv_img_raw = vipc_client.recv()
     if yuv_img_raw is None or not yuv_img_raw.data.any():
@@ -95,7 +96,9 @@ def main(debug=False, model_path=None):
     pred = outputs[0]['pred_class']
 
     cmd = CLASS_NAME_TO_CMD[pred]
-    
+    cmd['t'] = id
+    id = id + 1
+
     msg = messaging.new_message()
     msg.customReservedRawData1 = json.dumps(cmd).encode()
     print(msg.customReservedRawData1)
