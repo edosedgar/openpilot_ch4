@@ -4,12 +4,16 @@ import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
 from torchvision import models, transforms
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import os
 import argparse
 from sklearn.model_selection import train_test_split
 import cv2
+import numpy as np
+from torchvision.utils import make_grid
 
 class SelfDrivingDataset(Dataset):
     def __init__(self, db, transform=None):
@@ -22,13 +26,13 @@ class SelfDrivingDataset(Dataset):
 
     def __getitem__(self, idx):
         img_name = self.dataframe.iloc[idx, 0]
-        image = cv2.imread('dataset_v2/' + img_name)
+        image = cv2.imread('dataset_v2/' + img_name).astype(np.float32)/255
         
         label_str = self.dataframe.iloc[idx, 1]
         label = torch.tensor(self.label_map[label_str], dtype=torch.long)
         
         if self.transform:
-            image = self.transform(image)
+            image = self.transform(image=image)['image']
 
         return image, label
 
@@ -38,31 +42,30 @@ parser.add_argument("output_dir", type=str, help="Directory to save the checkpoi
 args = parser.parse_args()
 os.makedirs(args.output_dir, exist_ok=True)
 
-val_transform = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.Resize(224),
-    transforms.ToTensor(),
+val_transform = A.Compose([
+    A.Resize(224, 224),
+    ToTensorV2(),
     #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-train_transform = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.Resize(224),
-    transforms.RandomRotation(10),
-    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
-    transforms.ToTensor(),
+train_transform = A.Compose([
+    A.Resize(224, 224, interpolation=cv2.INTER_AREA),
+    A.Perspective(scale=(0.05, 0.1)),
+    A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+    A.GaussNoise(var_limit=(0.0001,0.0002)),
+    ToTensorV2(),
     #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 data = pd.read_csv("dataset_v2/desc.csv")
-train, val = train_test_split(data, test_size=0.3, random_state=42, stratify=data['label'])
+train, val = train_test_split(data, test_size=0.25, random_state=42, stratify=data['label'])
 print(len(train), len(val))
 
 train_dataset = SelfDrivingDataset(db=train.reset_index(drop=True), transform=train_transform)
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=32)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=32)
 
 val_dataset = SelfDrivingDataset(db=val.reset_index(drop=True), transform=val_transform)
-val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False,  num_workers=32)
+val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False,  num_workers=32)
 
 model = models.efficientnet_b0(pretrained=True)
 num_features = model.classifier[-1].in_features
@@ -87,14 +90,13 @@ def train_epoch(loader, criterion, optimizer, device):
     for inputs, labels in loader:
 
         if flag == 0:
-            cv2.imwrite('test.png', inputs[0,0].detach().numpy()*255)
+            cv2.imwrite('test.png', make_grid(inputs[:,:,:,:].detach()*255, nrow=8).numpy()[0,...])
             flag = 1
+
+        optimizer.zero_grad()
 
         inputs = inputs.cuda()
         labels = labels.cuda()
-        
-        optimizer.zero_grad()
-        
         outputs = model(inputs)
         loss = criterion(outputs, labels)
         loss.backward()

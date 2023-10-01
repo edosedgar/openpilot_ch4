@@ -49,7 +49,15 @@ log_chapters = [
    '2023-10-01--04-31-59--1-L',
    '2023-10-01--04-31-59--2-L',
    '2023-10-01--04-35-15--0-F',
-   '2023-10-01--04-35-15--1-F'
+   '2023-10-01--04-35-15--1-F',
+   '2023-10-01--11-22-39--0-R',
+   '2023-10-01--11-24-10--0-R',
+   '2023-10-01--11-24-10--1-R',
+   '2023-10-01--11-24-10--2-R',
+   '2023-10-01--11-26-39--0-R',
+   '2023-10-01--11-31-25--0-L',
+   '2023-10-01--11-35-10--0-L',
+   '2023-10-01--11-35-10--1-L'
 ]
 
 storage_path = './dataset_v2/'
@@ -60,7 +68,7 @@ log_chapter_tp = []
 ### copy
 for log_chapter in log_chapters:
    if os.path.isdir(storage_path + '/' + log_chapter) and \
-      len(glob.glob(storage_path + '/' + log_chapter + '/*.png')) > 5:
+      len(glob.glob(storage_path + '/' + log_chapter + '/*.png')) > 50:
       continue
 
    log_chapter_tp.append(log_chapter)
@@ -71,6 +79,8 @@ for log_chapter in log_chapters:
    sftp = ssh.open_sftp()
    localpath = '/tmp/' + log_chapter + '.hevc'
    remotepath = '/data/media/0/realdata/' + log_chapter + '/ecamera.hevc'
+   if os.path.isfile(localpath):
+      continue
    sftp.get(remotepath, localpath)
    sftp.close()
    ssh.close()
@@ -78,7 +88,7 @@ for log_chapter in log_chapters:
 ### process
 def worker(log_chapter):
    if os.path.isdir(storage_path + '/' + log_chapter) and \
-      len(glob.glob(storage_path + '/' + log_chapter + '/*.png')) > 5:
+      len(glob.glob(storage_path + '/' + log_chapter + '/*.png')) > 50:
       return
 
    os.makedirs(storage_path + '/' + log_chapter, exist_ok=True)
@@ -96,7 +106,7 @@ def worker(log_chapter):
    container.close()
    os.remove(localpath)
 
-Parallel(n_jobs=4)(delayed(worker)(log_chapter) for log_chapter in tqdm.tqdm(log_chapter_tp))
+Parallel(n_jobs=2)(delayed(worker)(log_chapter) for log_chapter in tqdm.tqdm(log_chapter_tp))
 
 for log_chapter in tqdm.tqdm(log_chapters):
    df_local = pd.DataFrame(columns=['filename', 'label'])
