@@ -7,6 +7,7 @@ import paramiko
 import av
 import pandas as pd
 import tqdm
+import glob
 
 log_chapters = [
    '2023-09-30--19-47-14--0-R',
@@ -30,9 +31,16 @@ log_chapters = [
 storage_path = './dataset_v2/'
 df_filename = os.path.join(storage_path, 'desc.csv')
 
-df = pd.DataFrame(columns=['filename', 'label'])
+if os.path.isfile(df_filename):
+   df = pd.read_csv(df_filename)
+else:
+   df = pd.DataFrame(columns=['filename', 'label'])
 
 for log_chapter in tqdm.tqdm(log_chapters):
+   if os.path.isdir(storage_path + '/' + log_chapter) and \
+      len(glob.glob(storage_path + '/' + log_chapter + '/*.png')) > 5:
+      continue
+   
    ssh = paramiko.SSHClient()
    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
    ssh.connect('192.168.63.76', username="comma")
@@ -54,4 +62,6 @@ for log_chapter in tqdm.tqdm(log_chapters):
       df.loc[-1] = [log_chapter + '/' + str(frame.index) + '.png', label]
       df.index = df.index + 1
 
+   container.close()
+   os.remove(localpath)
    df.to_csv(df_filename, index=False)
