@@ -6,6 +6,7 @@ import os
 import argparse
 import onnx
 from pathlib import Path
+import json
 
 os.environ["ZMQ"] = "1"
 from cereal import messaging
@@ -88,12 +89,16 @@ def main(debug=False, model_path=None):
     imgff = yuv_img_raw.data.reshape(-1, vipc_client.stride)
     imgff = imgff[:vipc_client.height, :vipc_client.width]
     img = np.stack([imgff, imgff, imgff], axis=-1)
+    print(img.shape)
     outputs = klay_runner.run(img)
     print(outputs)
     pred = outputs[0]['pred_class']
 
     cmd = CLASS_NAME_TO_CMD[pred]
-
+    
+    msg = messaging.new_message()
+    msg.customReservedRawData1 = json.dumps(cmd).encode()
+    print(msg.customReservedRawData1)
     pm.send('customReservedRawData1', msg)
 
 

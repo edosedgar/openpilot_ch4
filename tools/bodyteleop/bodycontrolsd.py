@@ -82,11 +82,16 @@ def main():
       else:
         send_control_message(pm, -controls['x'], controls['y'], 'wasd')
     elif sm.updated['customReservedRawData1']:
-      data = json.loads(sm['customReservedRawData1'].decode())
-      control_data = ControlData(**data)
-      if control_data.exec_id not in state.past_executions:
-        update_state(state, control_data)
-        print(f'Received {control_data.exec_id}: {control_data.controls_list} at cycle {cycle} time {time.monotonic()}')
+      # data = json.loads(sm['customReservedRawData1'].decode())
+      # control_data = ControlData(**data)
+      # print(control_data)
+      # if control_data.exec_id not in state.past_executions:
+      #   update_state(state, control_data)
+      #   print(f'Received {control_data.exec_id}: {control_data.controls_list} at cycle {cycle} time {time.monotonic()}')
+      controls = json.loads(sm['customReservedRawData1'].decode())
+      print('customReservedRawData1', controls)
+      if engaged:
+        send_control_message(pm, controls['x'], controls['y'], 'model')
 
     now = time.monotonic()
     if now > last_control_send_time + TIME_GAP_THRESHOLD:
