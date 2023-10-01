@@ -7,8 +7,6 @@ import argparse
 import onnx
 from pathlib import Path
 
-from openpilot.tools.bodyteleop.driver import execute_plan
-
 os.environ["ZMQ"] = "1"
 from cereal import messaging
 from cereal.visionipc import VisionIpcClient, VisionStreamType
@@ -95,7 +93,8 @@ def main(debug=False, model_path=None):
     pred = outputs[0]['pred_class']
 
     cmd = CLASS_NAME_TO_CMD[pred]
-    execute_plan([[cmd]], pm)
+
+    pm.send('customReservedRawData1', msg)
 
 
 if __name__ == "__main__":
