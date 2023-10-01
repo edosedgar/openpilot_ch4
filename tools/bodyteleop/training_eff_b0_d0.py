@@ -63,7 +63,14 @@ val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
 model = models.efficientnet_b0(pretrained=True)
 num_features = model.classifier[-1].in_features
-model.classifier[-1] = nn.Linear(num_features, 3)
+
+# Add dropout layer and the fully connected layer to the classifier
+model.classifier = nn.Sequential(
+    nn.Dropout(0.4),
+    nn.Linear(num_features, 3)
+)
+# num_features = model.classifier[-1].in_features
+# model.classifier[-1] = nn.Linear(num_features, 3)
 
 for param in model.parameters():
     param.requires_grad = False
