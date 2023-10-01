@@ -5,13 +5,11 @@ import numpy as np
 import os
 import argparse
 import onnx
-from pathlib import Path
 import json
 
 os.environ["ZMQ"] = "1"
 from cereal import messaging
 from cereal.visionipc import VisionIpcClient, VisionStreamType
-from openpilot.selfdrive.modeld.runners import ModelRunner
 import onnxruntime as ort
 
 INPUT_SHAPE = (224, 224, 3)
@@ -65,15 +63,6 @@ class KlayRunner:
         "prob": output_probabilities[predicted_class]
     }]
 
-  def draw_boxes(self, img, objects):
-    img = cv2.resize(img, INPUT_SHAPE)
-    for obj in objects:
-      pt1 = obj['pt1']
-      pt2 = tuple(obj['pt2'])
-      cv2.rectangle(img, pt1, pt2, (0, 255, 0), 2)
-      cv2.putText(img, f"{obj['pred_class']} {obj['prob']:.2f}", pt1, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    return img
-
 
 def main(debug=False, model_path=None):
   klay_runner = KlayRunner(model_path)
@@ -84,7 +73,7 @@ def main(debug=False, model_path=None):
   while not vipc_client.connect(False):
     time.sleep(0.1)
 
-  id = 0
+  idx = 0
   while True:
     yuv_img_raw = vipc_client.recv()
     if yuv_img_raw is None or not yuv_img_raw.data.any():
@@ -97,8 +86,8 @@ def main(debug=False, model_path=None):
     pred = outputs[0]['pred_class']
 
     cmd = CLASS_NAME_TO_CMD[pred]
-    cmd['t'] = id
-    id = id + 1
+    cmd['t'] = idx
+    idx = idx + 1
 
     msg = messaging.new_message()
     msg.customReservedRawData1 = json.dumps(cmd).encode()
