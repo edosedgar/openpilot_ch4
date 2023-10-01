@@ -90,7 +90,7 @@ procs = [
   # PythonProcess("bodycontrolsd", "tools.bodyteleop.bodycontrolsd", notcar),
   PythonProcess("fakemodeld", "selfdrive.modeld.fakemodeld", notcar, enabled=True),
   NativeProcess("yolo", "selfdrive/modeld", ["./yolo"], notcar, enabled=False),
-  NativeProcess("klay", "selfdrive/modeld", ["./klay"], notcar, enabled=True),
+  NativeProcess("klay", "selfdrive/modeld", ["./klay"], notcar, enabled=False),
 ]
 
 managed_processes = {p.name: p for p in procs}

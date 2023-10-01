@@ -66,7 +66,7 @@ def main():
   state = ControlState(past_executions=set(), exec_id=0, controls_list=[], control_idx=0)
 
   global engaged
-  engaged = True
+  engaged = False
   while True:
     sm.update(0)
     cycle += 1
